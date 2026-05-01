@@ -113,6 +113,7 @@ RUN_REDIS_TESTS=true npm test
 ## Further Reading
 
 - [New developer guide](docs/new-developer-guide.md)
+- [Manual testing scenarios](docs/manual-testing-scenarios.md)
 - [Request flow](docs/request-flow.md)
 - [Algorithm comparison](docs/algorithm-comparison.md)
 - [Failure modes](docs/failure-modes.md)

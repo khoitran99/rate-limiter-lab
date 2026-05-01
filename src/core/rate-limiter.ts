@@ -21,6 +21,10 @@ export class RateLimiter {
     failOpenAllowed: 0
   };
 
+  /**
+   * Builds a limiter with one policy and one backing store.
+   * Defaults favor availability: fail-open is enabled unless a route opts out.
+   */
   constructor(options: RateLimiterOptions) {
     validatePolicy(options);
 
@@ -35,6 +39,10 @@ export class RateLimiter {
     };
   }
 
+  /**
+   * Evaluates one request against the configured bucket policy.
+   * Returns a decision instead of throwing so HTTP middleware can choose how to respond.
+   */
   async check(key: string, checkOptions: CheckOptions = {}): Promise<RateLimitDecision> {
     const cost = checkOptions.cost ?? 1;
     validateCost(cost);
@@ -110,6 +118,10 @@ export class RateLimiter {
     }
   }
 
+  /**
+   * Convenience wrapper for callers that prefer exception-based control flow.
+   * Throws RateLimitExceededError when the request is throttled.
+   */
   async assertAllowed(key: string, options: CheckOptions = {}): Promise<RateLimitDecision> {
     const decision = await this.check(key, options);
     if (!decision.allowed) {
@@ -119,10 +131,16 @@ export class RateLimiter {
     return decision;
   }
 
+  /**
+   * Returns a defensive copy of runtime counters for debug endpoints and observability.
+   */
   getStats(): RateLimiterStats {
     return { ...this.stats };
   }
 
+  /**
+   * Exposes the active policy without leaking the internal store or clock implementation.
+   */
   getPolicy() {
     return {
       capacity: this.options.capacity,
@@ -133,10 +151,16 @@ export class RateLimiter {
     };
   }
 
+  /**
+   * Adds the limiter namespace so different routes can share a store without sharing buckets.
+   */
   private bucketKey(key: string): string {
     return `${this.options.namespace}:${key}`;
   }
 
+  /**
+   * Updates success and throttle counters after a store-backed decision.
+   */
   private recordDecision(decision: RateLimitDecision): void {
     if (decision.allowed) {
       this.stats.allowed += 1;
